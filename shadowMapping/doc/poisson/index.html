@@ -5,20 +5,39 @@ html,body {
   width: 100%;
   height: 100%;
 }
+
+.grid {
+  stroke: #000;
+  stroke-opacity: .15;
+  shape-rendering: crispEdges;
+}
 </style>
 <body>
 <script src="./lib/d3.v3.min.js"></script>
 <script>
 // https://bl.ocks.org/mbostock/19168c663618b7f07158
+// https://www.jianshu.com/p/4556ccad58d9
+
 var width = 500,
     height = 400;
 
-var sample = poissonDiscSampler(width, height, 20);
 
-var svg = d3.select("body").append("svg")
+    var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
+    var sample = poissonDiscSampler(width, height, 50);
 
+
+function drawGrid(cellSize, width, height) {
+  svg.append("path")
+    .attr("class", "grid")
+    .attr("d", d3.range(cellSize, width, cellSize)
+        .map(function(x) { return "M" + Math.round(x) + ",0V" + height; })
+        .join("")
+      + d3.range(cellSize, height, cellSize)
+        .map(function(y) { return "M0," + Math.round(y) + "H" + width; })
+        .join(""));
+}
 d3.timer(function() {
   for (var i = 0; i < 10; ++i) {
     var s = sample();
@@ -37,14 +56,15 @@ function poissonDiscSampler(width, height, radius) {
   var k = 30, // maximum number of samples before rejection
       radius2 = radius * radius,
       R = 3 * radius2,
-      cellSize = radius * Math.SQRT1_2,
+      // cellSize = radius * Math.SQRT1_2,
+      cellSize = radius* Math.SQRT1_2,
       gridWidth = Math.ceil(width / cellSize),
       gridHeight = Math.ceil(height / cellSize),
       grid = new Array(gridWidth * gridHeight),
       queue = [],
       queueSize = 0,
       sampleSize = 0;
-
+      drawGrid(cellSize, width, height)
   return function() {
     if (!sampleSize) return sample(Math.random() * width, Math.random() * height);
 
