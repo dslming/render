@@ -89,7 +89,30 @@ float findBlocker( sampler2D shadowMap,  vec2 uv, float zReceiver ) {
 }
 
 float PCF(sampler2D shadowMap, vec4 coords) {
-  return 1.0;
+   // 采样
+  poissonDiskSamples(coords.xy);
+  //uniformDiskSamples(coords.xy);
+
+  // shadow map 的大小, 越大滤波的范围越小
+  float textureSize = 400.0;
+  // 滤波的步长
+  float filterStride = 5.0;
+  // 滤波窗口的范围
+  float filterRange = 1.0 / textureSize * filterStride;
+  // 有多少点不在阴影里
+  int noShadowCount = 0;
+  for( int i = 0; i < NUM_SAMPLES; i ++ ) {
+    vec2 sampleCoord = poissonDisk[i] * filterRange + coords.xy;
+    vec4 closestDepthVec = texture2D(shadowMap, sampleCoord);
+    float closestDepth = unpack(closestDepthVec);
+    float currentDepth = coords.z;
+    if(currentDepth < closestDepth + 0.01){
+      noShadowCount += 1;
+    }
+  }
+
+  float shadow = float(noShadowCount) / float(NUM_SAMPLES);
+  return shadow;
 }
 
 float PCSS(sampler2D shadowMap, vec4 coords){
@@ -144,8 +167,8 @@ void main(void) {
   vec3 shadowCoord = vPositionFromLight.xyz / vPositionFromLight.w;
   // 归一化至 [0,1]
   shadowCoord = shadowCoord * 0.5 + 0.5;
-  visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
-  //visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
+  // visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
+  visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
   //visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 
   vec3 phongColor = blinnPhong();
