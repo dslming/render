@@ -28,3 +28,5 @@ npm run dev
 > https://xiaoiver.github.io/coding/2018/09/27/%E5%AE%9E%E6%97%B6%E9%98%B4%E5%BD%B1%E6%8A%80%E6%9C%AF%E6%80%BB%E7%BB%93.html
 
 
+#### Poisson-Disc(柏林分布)
+
