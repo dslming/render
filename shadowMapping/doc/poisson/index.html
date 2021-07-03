@@ -6,6 +6,11 @@ html,body {
   height: 100%;
 }
 
+.sample {
+  fill: #f00;
+  fill-opacity: 0.1;
+}
+
 .grid {
   stroke: #000;
   stroke-opacity: .15;
@@ -21,13 +26,15 @@ html,body {
 var width = 500,
     height = 400;
 
+    const sampleR = 50
+    const isShowRadus = true
 
-    var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
-    var sample = poissonDiscSampler(width, height, 50);
+var svg = d3.select("body").append("svg")
+.attr("width", width)
+.attr("height", height);
+var sample = poissonDiscSampler(width, height, sampleR);
 
-
+// 绘制网格
 function drawGrid(cellSize, width, height) {
   svg.append("path")
     .attr("class", "grid")
@@ -38,34 +45,52 @@ function drawGrid(cellSize, width, height) {
         .map(function(y) { return "M0," + Math.round(y) + "H" + width; })
         .join(""));
 }
+
+
 d3.timer(function() {
   for (var i = 0; i < 10; ++i) {
     var s = sample();
     if (!s) return true;
+
+    // 绘制实心圆
     svg.append("circle")
       .attr("cx", s[0])
       .attr("cy", s[1])
       .attr("r", 0)
       .transition()
       .attr("r", 2);
+
+      if(isShowRadus) {
+         // 空心圆
+        svg.append("circle")
+          .attr("class", "sample")
+          .attr("cx", s[0])
+          .attr("cy", s[1])
+          .attr("r", sampleR)
+      }
+
   }
 });
 
 // Based on https://www.jasondavies.com/poisson-disc/
 function poissonDiscSampler(width, height, radius) {
-  var k = 30, // maximum number of samples before rejection
-      radius2 = radius * radius,
-      R = 3 * radius2,
-      // cellSize = radius * Math.SQRT1_2,
-      cellSize = radius* Math.SQRT1_2,
-      gridWidth = Math.ceil(width / cellSize),
-      gridHeight = Math.ceil(height / cellSize),
-      grid = new Array(gridWidth * gridHeight),
-      queue = [],
-      queueSize = 0,
-      sampleSize = 0;
-      drawGrid(cellSize, width, height)
+  // maximum number of samples before rejection
+  var k = 300
+  var radius2 = radius * radius
+  var R = 3 * radius2
+  // var cellSize = radius* Math.SQRT1_2
+  var cellSize = radius/ Math.sqrt(2)
+  var gridWidth = Math.ceil(width / cellSize)
+  var gridHeight = Math.ceil(height / cellSize)
+  var grid = new Array(gridWidth * gridHeight)
+  var queue = []
+  var queueSize = 0
+  var sampleSize = 0
+  drawGrid(cellSize, width, height)
+
   return function() {
+    console.error(sampleSize);
+
     if (!sampleSize) return sample(Math.random() * width, Math.random() * height);
 
     // Pick a random existing sample and remove it from the queue.
@@ -82,6 +107,7 @@ function poissonDiscSampler(width, height, radius) {
 
         // Reject candidates that are outside the allowed extent,
         // or closer than 2 * radius to any existing sample.
+        // 拒绝超出允许范围或与任何现有样本的半径小于2*的候选样本。
         if (0 <= x && x < width && 0 <= y && y < height && far(x, y)) return sample(x, y);
       }
 
