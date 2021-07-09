@@ -24,6 +24,7 @@ varying highp vec3 vNormal;
 #define EPS 1e-3
 #define PI 3.141592653589793
 #define PI2 6.283185307179586
+#define W_LIGHT 20.15
 
 uniform sampler2D uShadowMap;
 
@@ -116,14 +117,34 @@ float PCF(sampler2D shadowMap, vec4 coords) {
 }
 
 float PCSS(sampler2D shadowMap, vec4 coords){
+ float zReceiver = coords.z;
 
   // STEP 1: avgblocker depth
+  float zBlocker = findBlocker(shadowMap, coords.xy, zReceiver);
+  if(zBlocker < EPS) return 1.0;
+  if(zBlocker > 1.0) return 0.0;
 
   // STEP 2: penumbra size
+  float wPenumbra = (zReceiver - zBlocker) * W_LIGHT / zBlocker;
 
   // STEP 3: filtering
+  float textureSize = 400.0;
+  // 这里的步长要比 STEP 1 的步长小一些
+  float filterStride = 5.0;
+  float filterRange = 1.0 / textureSize * filterStride * wPenumbra;
+  int noShadowCount = 0;
+  for( int i = 0; i < NUM_SAMPLES; i ++ ) {
+    vec2 sampleCoord = poissonDisk[i] * filterRange + coords.xy;
+    vec4 closestDepthVec = texture2D(shadowMap, sampleCoord);
+    float closestDepth = unpack(closestDepthVec);
+    float currentDepth = coords.z;
+    if(currentDepth < closestDepth + 0.01){
+      noShadowCount += 1;
+    }
+  }
 
-  return 1.0;
+  float shadow = float(noShadowCount) / float(NUM_SAMPLES);
+  return shadow;
 
 }
 
@@ -168,8 +189,8 @@ void main(void) {
   // 归一化至 [0,1]
   shadowCoord = shadowCoord * 0.5 + 0.5;
   // visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
-  visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
-  //visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
+  // visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
+  visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 
   vec3 phongColor = blinnPhong();
 
