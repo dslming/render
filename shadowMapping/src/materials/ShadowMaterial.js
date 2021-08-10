@@ -7,8 +7,13 @@ export default class ShadowMaterial extends Material {
         let lightMVP = light.CalcLightMVP(translate, scale);
 
         super({
-            'uLightMVP': { type: 'matrix4fv', value: lightMVP }
-        }, [], ShadowVertex, ShadowFragment, light.fbo);
+            uniforms:{
+              'uLightMVP': { type: 'matrix4fv', value: lightMVP }
+            },
+            vsSrc: ShadowVertex,
+            fsSrc: ShadowFragment,
+            frameBuffer: light.fbo
+        });
 
         // debug 直接输出光源处看到的深度信息
         // super({

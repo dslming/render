@@ -2,9 +2,8 @@ import Shader from '../webgl/Shader'
 // 抽象的着色器
 export default class Material {
     // Uniforms is a map, attribs is a Array
-    constructor(uniforms, attribs, vsSrc, fsSrc, frameBuffer) {
+    constructor({uniforms, vsSrc, fsSrc, frameBuffer}) {
         this.uniforms = uniforms;
-        this.attribs = attribs;
         this.vsSrc = vsSrc;
         this.fsSrc = fsSrc;
 
@@ -12,7 +11,7 @@ export default class Material {
         for (let k in uniforms) {
             this.flatten_uniforms.push(k);
         }
-        this.flatten_attribs = attribs;
+        this.flatten_attribs = [];
 
         this.frameBuffer = frameBuffer;
     }
