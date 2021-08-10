@@ -1,4 +1,4 @@
-export default `
+
 #ifdef GL_ES
 precision mediump float;
 #endif
@@ -93,20 +93,16 @@ float findBlocker( sampler2D shadowMap,  vec2 uv, float zReceiver ) {
 	return 1.0;
 }
 
-float PCF(sampler2D shadowMap, vec4 coords) {
-  float filterSize = 0.01;
-  float _sum = 0.0, depthOnShadowMap, depth, vis;
-  vec4 nCoords;
-   for (int i = 0; i < PCF_NUM_SAMPLES; i++) {
-     nCoords = vec4(coords.xy + filterSize * poissonDisk[i], coords.zw);
-
-     depthOnShadowMap = unpack(texture2D(shadowMap, nCoords.xy));
-     depth = nCoords.z;
-
-     vis = step(depth - EPS, depthOnShadowMap);
-     _sum += vis;
-   }
-  return _sum / float(PCF_NUM_SAMPLES);
+float PCF(sampler2D shadowMap, vec4 coords, float filterSize) {
+ poissonDiskSamples(coords.xy);
+  float res = 0.0;
+  for(int i=0; i<NUM_SAMPLES; i++)
+  {
+    vec2 texcoords = poissonDisk[i]*filterSize+coords.xy;
+    float z = unpack(texture2D(shadowMap, texcoords));
+    res += coords.z > z + 0.012 ? 0.0 : 1.0;
+  }
+  return res/float(NUM_SAMPLES);
 }
 
 float PCSS(sampler2D shadowMap, vec4 coords){
@@ -179,10 +175,10 @@ void main(void) {
   // 归一化至 [0,1]
   shadowCoord = shadowCoord * 0.5 + 0.5;
   // visibility = useShadowMap(uShadowMap, vec4(shadowCoord, 1.0));
-  // visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
-  visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
+  visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0), 0.003);
+  // visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 
   vec3 phongColor = blinnPhong();
 
   gl_FragColor = vec4(phongColor * visibility, 1.0);
-}`
+}

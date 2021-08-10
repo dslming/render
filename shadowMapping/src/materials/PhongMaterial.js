@@ -1,6 +1,6 @@
 import Material from './Material'
-import vertexShader from '../shader/phongVertex.glsl'
-import fragmentShader from '../shader/phongFragment.glsl'
+const Phongvertex = require ('../shader/PhongVertex.glsl')
+const PhongFragment = require('../shader/PhongFragment.glsl');
 
 export default class PhongMaterial extends Material {
     constructor(color, specular, light, translate, scale) {
@@ -16,6 +16,6 @@ export default class PhongMaterial extends Material {
             'uShadowMap': { type: 'texture', value: light.fbo },
             'uLightMVP': { type: 'matrix4fv', value: lightMVP },
 
-        }, [], vertexShader, fragmentShader);
+        }, [], Phongvertex, PhongFragment);
     }
 }

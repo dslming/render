@@ -1,12 +1,14 @@
 import Material from '../materials/Material'
-import { LightCubeVertexShader, LightCubeFragmentShader } from '../shader/lightShader.glsl'
+const LightCubeVertex = require('../shader/LightCubeVertex.glsl');
+const LightCubeFragment = require('../shader/LightCubeFragment.glsl');
+
 // 光照
 export default class EmissiveMaterial extends Material {
   constructor(lightIntensity, lightColor) {
     super({
       'uLigIntensity': { type: '1f', value: lightIntensity },
       'uLightColor': { type: '3fv', value: lightColor }
-    }, [], LightCubeVertexShader, LightCubeFragmentShader);
+    }, [], LightCubeVertex, LightCubeFragment);
 
     this.intensity = lightIntensity;
     this.color = lightColor;
