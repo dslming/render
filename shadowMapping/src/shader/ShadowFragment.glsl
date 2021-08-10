@@ -1,4 +1,4 @@
-export default `#ifdef GL_ES
+#ifdef GL_ES
 precision mediump float;
 #endif
 
@@ -21,4 +21,4 @@ vec4 pack (float depth) {
 void main(){
   gl_FragColor = pack(gl_FragCoord.z);
   //  gl_FragColor = vec4(vec3(gl_FragCoord.z), 1.);
-}`
+}

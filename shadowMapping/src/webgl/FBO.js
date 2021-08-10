@@ -1,5 +1,7 @@
 import { resolution } from '../const/const'
-
+/**
+ * 帧缓冲对象, 渲染目标
+ */
 export default class FBO{
     constructor(gl){
         var framebuffer, texture, depthBuffer;

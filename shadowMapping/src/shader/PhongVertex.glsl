@@ -1,4 +1,4 @@
-export default `attribute vec3 aVertexPosition;
+attribute vec3 aVertexPosition;
 attribute vec3 aNormalPosition;
 attribute vec2 aTextureCoord;
 
@@ -22,4 +22,4 @@ void main(void) {
 
   vTextureCoord = aTextureCoord;
   vPositionFromLight = uLightMVP * vec4(aVertexPosition, 1.0);
-}`
+}

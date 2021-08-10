@@ -2,6 +2,7 @@ const path = require('path')
 const WebpackBar = require('webpackbar')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+
 module.exports = {
   mode: "development",
   entry: "./app.js",
@@ -10,7 +11,6 @@ module.exports = {
     path: path.join(__dirname, "./dist")
   },
   devtool: "source-map",
-  module: "commonjs",
   devServer: {
     port: 8888,
     open: false,
@@ -32,6 +32,11 @@ module.exports = {
     })
   ],
   module: {
-    rules: []
+    rules: [
+      {
+        test: /\.glsl$/,
+        loader: 'webpack-glsl-loader'
+      }
+    ]
   }
 }

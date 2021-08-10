@@ -1,4 +1,4 @@
-import EmissiveMaterial from './EmissiveMaterial'
+import EmissiveMaterial from '../materials/EmissiveMaterial'
 import Mesh from '../object/Mesh'
 import { setTransform } from '../tool/TRSTransform'
 import FBO from '../webgl/FBO'

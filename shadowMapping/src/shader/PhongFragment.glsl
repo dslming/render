@@ -1,4 +1,3 @@
-export default `
 #ifdef GL_ES
 precision mediump float;
 #endif
@@ -16,7 +15,7 @@ varying highp vec3 vFragPos;
 varying highp vec3 vNormal;
 
 // Shadow map related variables
-#define NUM_SAMPLES 20
+#define NUM_SAMPLES 50
 #define BLOCKER_SEARCH_NUM_SAMPLES NUM_SAMPLES
 #define PCF_NUM_SAMPLES NUM_SAMPLES
 #define NUM_RINGS 10
@@ -44,7 +43,9 @@ highp float rand_2to1(vec2 uv ) {
 
 float unpack(vec4 rgbaDepth) {
     const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0));
-    return dot(rgbaDepth, bitShift);
+    float res = dot(rgbaDepth, bitShift);
+    if (res<EPS)return 1.0;
+    return res;
 }
 
 vec2 poissonDisk[NUM_SAMPLES];
@@ -85,9 +86,6 @@ void uniformDiskSamples( const in vec2 randomSeed ) {
   }
 }
 
-float findBlocker( sampler2D shadowMap,  vec2 uv, float zReceiver ) {
-	return 1.0;
-}
 
 float PCF(sampler2D shadowMap, vec4 coords) {
    // 采样
@@ -119,6 +117,8 @@ float PCF(sampler2D shadowMap, vec4 coords) {
 float PCSS(sampler2D shadowMap, vec4 coords){
  float zReceiver = coords.z;
 
+float PCSS(sampler2D shadowMap, vec3 coords)
+{
   // STEP 1: avgblocker depth
   float zBlocker = findBlocker(shadowMap, coords.xy, zReceiver);
   if(zBlocker < EPS) return 1.0;
@@ -148,15 +148,9 @@ float PCSS(sampler2D shadowMap, vec4 coords){
 
 }
 
-float useShadowMap(sampler2D shadowMap, vec4 shadowCoord){
-  // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-  vec4 closestDepthVec = texture2D(shadowMap, shadowCoord.xy);
-  float closestDepth = unpack(closestDepthVec);
-  // get depth of current fragment from light's perspective
-  float currentDepth = shadowCoord.z;
-  // check whether current frag pos is in shadow
-  float shadow = closestDepth > currentDepth ? 1.0 : 0.0;
-  return shadow;
+float useShadowMap(sampler2D shadowMap, vec3 shadowCoord){
+  float z = unpack(texture2D(shadowMap, shadowCoord.xy));
+  return shadowCoord.z > z + 0.015 ? 0.0 : 1.0;
 }
 
 vec3 blinnPhong() {
@@ -192,7 +186,12 @@ void main(void) {
   // visibility = PCF(uShadowMap, vec4(shadowCoord, 1.0));
   visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
 
-  vec3 phongColor = blinnPhong();
+  // PCF
+  // float visibility = PCF(uShadowMap, shadowCoord, 0.003);
 
-  gl_FragColor = vec4(phongColor * visibility, 1.0);
-}`
+  // PCSS
+  float visibility = PCSS(uShadowMap, shadowCoord);
+
+  vec3 phongColor = blinnPhong();
+  gl_FragColor = vec4(phongColor*visibility,1.0);
+}
