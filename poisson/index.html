@@ -89,7 +89,7 @@ function poissonDiscSampler(width, height, radius) {
   drawGrid(cellSize, width, height)
 
   return function() {
-    console.error(sampleSize);
+    // console.error(sampleSize);
 
     if (!sampleSize) return sample(Math.random() * width, Math.random() * height);
 

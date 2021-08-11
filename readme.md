@@ -21,3 +21,6 @@ games 202
 【13】实时光线追踪 2（temporal accumulation，denoising，SVGF，RAE）
 【14】实时抗锯齿与超采样（TAA，SMAA，DLSS，etc.）
 【15】实时渲染中常用的工业界技术（cascaded/tiled/deferred shading，particles，对游戏引擎的一些简单分析，etc.）
+
+
+阴影 https://zhuanlan.zhihu.com/p/144025113
