@@ -1,9 +1,6 @@
 import Material from './Material'
-const PhongVertex = require ('../shader/PhongVertex.glsl')
-// const PhongFragment = require('');
 import PhongFragment from '../shader/PhongFragment.glsl.js'
-console.error(PhongFragment);
-
+import PhongVertex from '../shader/PhongVertex.glsl'
 export default class PhongMaterial extends Material {
     constructor(color, specular, light, translate, scale) {
         let lightMVP = light.CalcLightMVP(translate, scale);

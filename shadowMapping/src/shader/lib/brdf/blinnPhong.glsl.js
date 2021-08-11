@@ -1,5 +1,12 @@
 export default `
-vec3 blinnPhong() {
+vec3 blinnPhong(
+  vec3 uKs,
+  vec3 uCameraPos,
+  sampler2D uSampler,
+  vec3 uLightPos,
+  vec2 vTextureCoord,
+  vec3 vNormal,
+  vec3 vFragPos) {
   vec3 color = texture2D(uSampler, vTextureCoord).rgb;
   color = pow(color, vec3(2.2));
 

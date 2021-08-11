@@ -1,7 +1,6 @@
 import Material from './Material'
-const ShadowVertex = require('../shader/ShadowVertex.glsl');
-const ShadowFragment = require('../shader/ShadowFragment.glsl');
-
+import ShadowVertex from '../shader/ShadowVertex.glsl'
+import ShadowFragment from '../shader/ShadowFragment.glsl'
 export default class ShadowMaterial extends Material {
     constructor(light, translate, scale) {
         let lightMVP = light.CalcLightMVP(translate, scale);
