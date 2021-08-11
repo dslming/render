@@ -3,8 +3,8 @@ import blinnPhong from './lib/brdf/blinnPhong.glsl.js'
 import poissonDiskSamples from './lib/samples/possionDiskSamples.glsl.js'
 import PCF from "./lib/shadow/PCF.glsl.js"
 import useShadowMap from './lib/shadow/shadowMap.glsl.js'
+import PCSS from './lib/shadow/PCSS.glsl'
 import depth from './lib/depth/depth.glsl.js'
-
 const NUM_SAMPLES = 100;
 
 export default `
@@ -32,15 +32,15 @@ ${ poissonDiskSamples(NUM_SAMPLES) }
 ${PCF(NUM_SAMPLES) }
 ${ blinnPhong }
 ${ useShadowMap }
-
+${ PCSS(NUM_SAMPLES) }
 void main(void) {
   vec3 projCoords = vPositionFromLight.xyz / vPositionFromLight.w;
   vec3 shadowCoord = projCoords * 0.5 + 0.5;
 
   float visibility;
   // visibility = useShadowMap(uShadowMap, vec4(shadowCoord,1.0));
-  visibility = PCF(uShadowMap, vec4(shadowCoord,1.0));
-  // visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
+  // visibility = PCF(uShadowMap, vec4(shadowCoord,1.0));
+  visibility = PCSS(uShadowMap, vec4(shadowCoord, 1.0));
   vec3 phongColor = blinnPhong(uKs, uCameraPos, uSampler, uLightPos, vTextureCoord, vNormal, vFragPos);
   gl_FragColor = vec4(phongColor * visibility, 1.0);
 }
