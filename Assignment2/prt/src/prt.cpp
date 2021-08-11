@@ -63,8 +63,10 @@ namespace ProjEnv
         return std::atan2(x * y, std::sqrt(x * x + y * y + 1.0));
     }
 
+    // 计算 cubemap 上每个像素所代表的矩形区域投影到单位球面的面积，其中 u,v 分别代表图片坐标系中的横纵坐标，
+    // width 和 height 分别表示贴图的宽和高
     float CalcArea(const float &u_, const float &v_, const int &width,
-                   const int &height)
+                     const int &height)
     {
         // transform from [0..res - 1] to [- (1 - 1 / res) .. (1 - 1 / res)]
         // ( 0.5 is for texel center addressing)
@@ -88,7 +90,7 @@ namespace ProjEnv
     }
 
     // template <typename T> T ProjectSH() {}
-
+    // 计算球谐系数
     template <size_t SHOrder>
     std::vector<Eigen::Array3f> PrecomputeCubemapSH(const std::vector<std::unique_ptr<float[]>> &images,
                                                     const int &width, const int &height,
