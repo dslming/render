@@ -13,6 +13,8 @@ NORI_NAMESPACE_BEGIN
 
 namespace ProjEnv
 {
+    template <size_t SHOrder>
+    std::vector<Eigen::Array3f> PrecomputeCubemapSH(const std::vector<std::unique_ptr<float[]>> &images, const int &width, const int &height, const int &channel);
     std::vector<std::unique_ptr<float[]>>
     LoadCubemapImages(const std::string &cubemapDir, int &width, int &height,
                       int &channel)
@@ -63,10 +65,8 @@ namespace ProjEnv
         return std::atan2(x * y, std::sqrt(x * x + y * y + 1.0));
     }
 
-    // 计算 cubemap 上每个像素所代表的矩形区域投影到单位球面的面积，其中 u,v 分别代表图片坐标系中的横纵坐标，
-    // width 和 height 分别表示贴图的宽和高
     float CalcArea(const float &u_, const float &v_, const int &width,
-                     const int &height)
+                   const int &height)
     {
         // transform from [0..res - 1] to [- (1 - 1 / res) .. (1 - 1 / res)]
         // ( 0.5 is for texel center addressing)
@@ -90,7 +90,7 @@ namespace ProjEnv
     }
 
     // template <typename T> T ProjectSH() {}
-    // 计算球谐系数
+
     template <size_t SHOrder>
     std::vector<Eigen::Array3f> PrecomputeCubemapSH(const std::vector<std::unique_ptr<float[]>> &images,
                                                     const int &width, const int &height,
@@ -118,6 +118,20 @@ namespace ProjEnv
         std::vector<Eigen::Array3f> SHCoeffiecents(SHNum);
         for (int i = 0; i < SHNum; i++)
             SHCoeffiecents[i] = Eigen::Array3f(0);
+
+        std::vector<int> allLs(SHNum);
+        std::vector<int> allMs(SHNum);
+        int index = 0;
+        for (int l = 0; l <= SHOrder; l++)
+        {
+            for (int m = -l; m <= l; m++)
+            {
+                allLs[index] = l;
+                allMs[index] = m;
+                index++;
+            }
+        }
+
         float sumWeight = 0;
         for (int i = 0; i < 6; i++)
         {
@@ -131,8 +145,23 @@ namespace ProjEnv
                     int index = (y * width + x) * channel;
                     Eigen::Array3f Le(images[i][index + 0], images[i][index + 1],
                                       images[i][index + 2]);
+
+                    float dOmega = CalcArea(x, y, width, height);
+                    auto dirD = dir.cast<double>();
+                    sumWeight += dOmega;
+
+                    for (int s = 0; s < SHNum; s++)
+                    {
+                        auto sh = sh::EvalSH(allLs[s], allMs[s], dirD.normalized());
+                        SHCoeffiecents[s] += sh * dOmega * Le;
+                    }
                 }
             }
+        }
+
+        for (int s = 0; s < SHNum; s++)
+        {
+            SHCoeffiecents[s] = SHCoeffiecents[s] / sumWeight;
         }
         return SHCoeffiecents;
     }
@@ -178,7 +207,6 @@ public:
 
     virtual void preprocess(const Scene *scene) override
     {
-
         // Here only compute one mesh
         const auto mesh = scene->getMeshes()[0];
         // Projection environment
@@ -201,23 +229,52 @@ public:
         // Projection transport
         m_TransportSHCoeffs.resize(SHCoeffLength, mesh->getVertexCount());
         fout << mesh->getVertexCount() << std::endl;
+
+        std::vector<int> allLs(SHCoeffLength);
+        std::vector<int> allMs(SHCoeffLength);
+        int index = 0;
+        for (int l = 0; l <= SHOrder; l++)
+        {
+            for (int m = -l; m <= l; m++)
+            {
+                allLs[index] = l;
+                allMs[index] = m;
+                index++;
+            }
+        }
+
         for (int i = 0; i < mesh->getVertexCount(); i++)
         {
             const Point3f &v = mesh->getVertexPositions().col(i);
-            const Normal3f &n = mesh->getVertexNormals().col(i);
-            auto shFunc = [&](double phi, double theta) -> double {
+            const Normal3f &n = mesh->getVertexNormals().col(i).normalized();
+            auto shFunc = [&](double phi, double theta) -> double
+            {
                 Eigen::Array3d d = sh::ToVector(phi, theta);
-                const auto wi = Vector3f(d.x(), d.y(), d.z());
+                const auto wi = Vector3f(d.x(), d.y(), d.z()).normalized();
+                double in = n.dot(wi);
                 if (m_Type == Type::Unshadowed)
                 {
                     // TODO: here you need to calculate unshadowed transport term of a given direction
                     // TODO: 此处你需要计算给定方向下的unshadowed传输项球谐函数值
+                    if (in > 0)
+                    {
+                        return in;
+                    }
                     return 0;
                 }
                 else
                 {
                     // TODO: here you need to calculate shadowed transport term of a given direction
                     // TODO: 此处你需要计算给定方向下的shadowed传输项球谐函数值
+                    //auto triangleCount = mesh->getTriangleCount();
+                    if (in > 0)
+                    {
+                        if (scene->rayIntersect(Ray3f(v, wi)))
+                        {
+                            return 0;
+                        }
+                        return in;
+                    }
                     return 0;
                 }
             };
@@ -229,7 +286,19 @@ public:
         }
         if (m_Type == Type::Interreflection)
         {
-            // TODO: leave for bonus
+            MatrixXf indirectCoeffs;
+            indirectCoeffs.resize(SHCoeffLength, mesh->getVertexCount());
+            for (int i = 0; i < mesh->getVertexCount(); i++)
+            {
+                const Point3f &v = mesh->getVertexPositions().col(i);
+                const Normal3f &n = mesh->getVertexNormals().col(i).normalized();
+                double *vertexCoeffs = SumIndirectCoeffs(&m_TransportSHCoeffs, scene, v, n, 1);
+                for (int j = 0; j < SHCoeffLength; j++)
+                {
+                    indirectCoeffs.col(i).coeffRef(j) = vertexCoeffs[j];
+                }
+            }
+            m_TransportSHCoeffs += indirectCoeffs;
         }
 
         // Save in face format
@@ -257,6 +326,72 @@ public:
                   << " to: " << transPath.str() << std::endl;
     }
 
+    // 一个点的间接光
+    double *SumIndirectCoeffs(const MatrixXf *directCoeffs, const Scene *scene, const Point3f &v, const Normal3f &n, int depth = 0)
+    {
+        double ret[SHCoeffLength] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        if (depth > m_Bounce)
+            return ret;
+
+        // 蒙特卡洛
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> rng(0.0, 1.0);
+
+        const int sample_side = static_cast<int>(floor(sqrt(m_SampleCount)));
+        for (int t = 0; t < sample_side; t++)
+        {
+            for (int p = 0; p < sample_side; p++)
+            {
+                double alpha = (t + rng(gen)) / sample_side;
+                double beta = (p + rng(gen)) / sample_side;
+
+                double phi = 2.0 * M_PI * beta;
+                double theta = acos(2.0 * alpha - 1.0);
+
+                Eigen::Array3d d = sh::ToVector(phi, theta);
+                const auto wi = Vector3f(d.x(), d.y(), d.z()).normalized();
+                double in = n.dot(wi);
+                if (in > 0)
+                {
+                    Intersection intersection;
+                    bool intersects = scene->rayIntersect(Ray3f(v, wi), intersection);
+                    if (intersects)
+                    {
+                        // 重心插值
+                        // 按照 bary 权重对三个顶点的系数依次插值
+                        // 再乘以 in
+                        const Mesh *mesh = intersection.mesh;
+                        Vector3f bary = intersection.bary;
+                        Point3f triangleIndexs = intersection.tri_index;
+                        Point3f intersectPoint = intersection.p;
+
+                        MatrixXf normals = mesh->getVertexNormals();
+                        Normal3f interpNormal =
+                            Normal3f(normals.col(triangleIndexs.x()).normalized() * bary.x() +
+                                     normals.col(triangleIndexs.y()).normalized() * bary.y() +
+                                     normals.col(triangleIndexs.z()).normalized() * bary.z())
+                                .normalized();
+                        auto nextBounce = SumIndirectCoeffs(directCoeffs, scene, intersectPoint, interpNormal, depth + 1);
+                        for (int coeffIndex = 0; coeffIndex < SHCoeffLength; coeffIndex++)
+                        {
+                            auto indirect =
+                                (directCoeffs->col(triangleIndexs.x()).coeffRef(coeffIndex) * bary.x() +
+                                 directCoeffs->col(triangleIndexs.y()).coeffRef(coeffIndex) * bary.y() +
+                                 directCoeffs->col(triangleIndexs.z()).coeffRef(coeffIndex) * bary.z() +
+                                 nextBounce[coeffIndex]) *
+                                in;
+                            ret[coeffIndex] += indirect;
+                        }
+                    }
+                    return ret;
+                }
+                return ret;
+            }
+        }
+        return ret;
+    }
+
     Color3f Li(const Scene *scene, Sampler *sampler, const Ray3f &ray) const
     {
         Intersection its;
@@ -277,10 +412,10 @@ public:
         // TODO: you need to delete the following four line codes after finishing your calculation to SH,
         //       we use it to visualize the normals of model for debug.
         // TODO: 在完成了球谐系数计算后，你需要删除下列四行，这四行代码的作用是用来可视化模型法线
-        if (c.isZero()) {
-            auto n_ = its.shFrame.n.cwiseAbs();
-            return Color3f(n_.x(), n_.y(), n_.z());
-        }
+        //if (c.isZero()) {
+        //    auto n_ = its.shFrame.n.cwiseAbs();
+        //    return Color3f(n_.x(), n_.y(), n_.z());
+        //}
         return c;
     }
 
