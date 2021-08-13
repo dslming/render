@@ -51,6 +51,7 @@ namespace ProjEnv
         return images;
     }
 
+    // 纹理贴图与法线的关系
     const Eigen::Vector3f cubemapFaceDirections[6][3] = {
         {{0, 0, 1}, {0, -1, 0}, {-1, 0, 0}},  // negx
         {{0, 0, 1}, {0, -1, 0}, {1, 0, 0}},   // posx
@@ -65,6 +66,7 @@ namespace ProjEnv
         return std::atan2(x * y, std::sqrt(x * x + y * y + 1.0));
     }
 
+    // 计算立体角
     float CalcArea(const float &u_, const float &v_, const int &width,
                    const int &height)
     {
