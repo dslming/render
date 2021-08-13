@@ -24,3 +24,9 @@ games 202
 
 
 阴影 https://zhuanlan.zhihu.com/p/144025113
+
+prt https://blog.uwa4d.com/archives/Study_PRT.html
+code Precomputed Radiance Transfert (PRT)
+prt https://yangwc.com/2021/04/29/PRT/
+https://www.csie.ntu.edu.tw/~cyy/courses/rendering/06fall/lectures/handouts/lec13_SH.pdf
+https://developer.nvidia.com/gpugems/gpugems2/part-ii-shading-lighting-and-shadows/chapter-10-real-time-computation-dynamic
