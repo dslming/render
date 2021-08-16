@@ -1,36 +1,48 @@
 import { Promise } from 'bluebird'
 import * as THREE from 'three'
-import CanvasTool from './CanvasTool'
-const M_PI = 3.1415926
+import sh from './sh'
+
+const SHOrder = 2
+const FACE_NAME = {
+  CUBE_FACE_LEFT: 0, //negx
+  CUBE_FACE_BOTTOM: 1,//negy
+  CUBE_FACE_BACK: 2, //negz
+  CUBE_FACE_RIGHT: 3, //posx
+  CUBE_FACE_TOP: 4, //posy
+  CUBE_FACE_FRONT: 5, //posz
+}
+
 class App {
   constructor() {
-    this.urls =  [{
-        url: "./Indoor/negx.jpg",
-        name: "negx"
+    const path = "Indoor"
+    this.urls = [
+      {
+        url: `./${path}/negx.jpg`,
+        name: FACE_NAME.CUBE_FACE_LEFT
       },
       {
-        url: "./Indoor/negy.jpg",
-        name: "negy"
+        url: `./${path}/posx.jpg`,
+        name: FACE_NAME.CUBE_FACE_RIGHT
       },
-      {
-        url: "./Indoor/negz.jpg",
-        name: "negz"
+       {
+         url: `./${path}/posy.jpg`,
+         name: FACE_NAME.CUBE_FACE_TOP
       },
-      {
-        url: "./Indoor/posx.jpg",
-        name: "posx"
+        {
+          url: `./${path}/negy.jpg`,
+          name: FACE_NAME.CUBE_FACE_BOTTOM
       },
+        {
+          url: `./${path}/posz.jpg`,
+          name: FACE_NAME.CUBE_FACE_FRONT
+        },
       {
-        url: "./Indoor/posy.jpg",
-        name: "posy"
-      },
-      {
-        url: "./Indoor/posz.jpg",
-        name: "posz"
+        url: `./${path}/negz.jpg`,
+        name: FACE_NAME.CUBE_FACE_BACK
       },
     ]
     this.getAllImage()
-    this.PrecomputeCubemapSH([1,2,3,4,5],5,5)
+
   }
 
   async getAllImage() {
@@ -39,6 +51,8 @@ class App {
       const {url,name} = this.urls[i]
       images[i] = await this.getImage(url, name)
     }
+    const w =256
+    this.PrecomputeCubemapSH(images,w, w)
   }
 
   getImage(url,name) {
@@ -68,7 +82,9 @@ class App {
   }
 
   // 计算立体角
-  CalcArea(u, v, width, height) {
+  CalcArea(x, y, width, height) {
+    const u = (2.0 * (x + 0.5) / width) - 1.0;
+    const v = (2.0 * (y + 0.5) / height) - 1.0;
     const invResolutionW = 1.0 / width;
     const invResolutionH = 1.0 / height;
 
@@ -76,7 +92,8 @@ class App {
     const y0 = v - invResolutionH;
     const x1 = u + invResolutionW;
     const y1 = v + invResolutionH;
-    const angle = this.CalcPreArea(x0, y0) -
+    const angle =
+      this.CalcPreArea(x0, y0) -
       this.CalcPreArea(x0, y1) -
       this.CalcPreArea(x1, y0) +
       this.CalcPreArea(x1, y1);
@@ -84,101 +101,110 @@ class App {
   }
 
   PrecomputeCubemapSH(images, width, height) {
-    const components_per_pixel = 3
-    const coeffs = []
-    const CUBE_FACE_COUNT = 1
-    const SH_COUNT = 9
+    const CUBE_FACE_COUNT = 6
+    const SHCoeffiecents = []
+    const channel = 4
 
-    let sum = 0.0
-    for (let face = 0; face < CUBE_FACE_COUNT; face+=1) {
-      for (let y = 0; y < height; ++y) {
-        for (let x = 0; x < width; ++x) {
-          // center each pixel
-          const px = x + 0.5;
-          const py = y + 0.5;
+     const cubemapFaceDirections = [
+       [
+         [0, 0, 1],
+         [0, -1, 0],
+         [-1, 0, 0]
+       ], // negx
+       [
+         [0, 0, 1],
+         [0, -1, 0],
+         [1, 0, 0]
+       ], // posx
+       [
+         [1, 0, 0],
+         [0, 0, -1],
+         [0, -1, 0]
+       ], // negy
+       [
+         [1, 0, 0],
+         [0, 0, 1],
+         [0, 1, 0]
+       ], // posy
+       [
+         [-1, 0, 0],
+         [0, -1, 0],
+         [0, 0, -1]
+       ], // negz
+       [
+         [1, 0, 0],
+         [0, -1, 0],
+         [0, 0, 1]
+       ], // posz
+     ]
+    const cubemapDirs = []
+    for (let i = 0; i < CUBE_FACE_COUNT; i++) {
+       const faceDirX = cubemapFaceDirections[i][0];
+       const faceDirY = cubemapFaceDirections[i][1];
+       const faceDirZ = cubemapFaceDirections[i][2];
+       for (let y = 0; y < height; y+=1) {
+         for (let x = 0; x < width; x+=1) {
+           const u = 2 * ((x + 0.5) / width) - 1;
+           const v = 2 * ((y + 0.5) / height) - 1;
+           const vec3X = new THREE.Vector3(faceDirX[0], faceDirX[1], faceDirX[2])
+           const vec3Y = new THREE.Vector3(faceDirY[0], faceDirY[1], faceDirY[2])
+           const vec3Z = new THREE.Vector3(faceDirZ[0], faceDirZ[1], faceDirZ[2])
+           vec3X.multiplyScalar(u)
+           vec3Y.multiplyScalar(v)
+           const dir = vec3X.add(vec3Y).add(vec3Z).normalize()
+           cubemapDirs.push(dir);
+         }
+       }
+    }
 
-          // normalize into [-1, 1] range
-          const u = 2.0 * (px / width) - 1.0;
-          const v = 2.0 * (py / height) - 1.0;
+    const SHNum = (SHOrder + 1) * (SHOrder + 1);
 
-          const dOmega = this.CalcArea(u, v, width, height)
-          sum += dOmega
-          const faceame = this.urls[face].name
-          const dir = this.uv_to_cube(faceame)
-          const pixel_start = (x + y * width) * components_per_pixel
-          for (let s = 0; s < SH_COUNT; s+=1) {
-            const sh_val = this.sh_eval_9(s, dir[0], dir[1], dir[2]);
-            for (let comp = 0; comp < components_per_pixel; comp+= 1) {
-              let col = images[face][pixel_start + comp] / 255.0;
-              // out_channels[comp].coeffs[s] += col * sh_val * d_a;
+    for (let i = 0; i < SHNum; i += 1) {
+      SHCoeffiecents[i] = [
+        0,0,0
+      ]
+    }
+
+    for (let i = 0; i < CUBE_FACE_COUNT; i+=1) {
+      for (let y = 0; y < height; y+=1) {
+        for (let x = 0; x < width; x += 1) {
+          // 拿到该像素的方向
+          const dir = cubemapDirs[i * width * height + y * width + x];
+          const index = (y * width + x) * channel;
+          const Le = [
+            images[i].data[index + 0]/255,
+            images[i].data[index + 1]/255,
+            images[i].data[index + 2]/255,
+          ]
+
+          // 像素所代表的矩形区域投影到单位球面的面积
+          const wOmege = this.CalcArea(x, y, width, height);
+
+          // 投影
+          for (let l = 0; l <= SHOrder; l+=1) {
+            for (let m = -l; m <= l; m+=1) {
+              let k = sh.GetIndex(l, m);
+              const basisFunc = sh.EvalSH(l, m, dir);
+
+              // 对于 cubemap 中的每一处光线，
+              // 都去累加它们把灯光 Le，
+              // 以 wOmege面积投影在 basisFunc 上的系数
+              // 得到的结果一系列近似了环境光球面的 SH 系数
+              SHCoeffiecents[k][0] += Le[0] * wOmege * basisFunc;
+              SHCoeffiecents[k][1] += Le[1] * wOmege * basisFunc;
+              SHCoeffiecents[k][2] += Le[2] * wOmege * basisFunc;
             }
           }
         }
       }
     }
-  }
 
-  uv_to_cube(name) {
-      // 纹理贴图与法线的关系
-    const cubemapFaceDirections = {
-      negx: [
-        [0, 0, 1],
-        [0, -1, 0],
-        [-1, 0, 0]
-      ],
-      posx: [
-        [0, 0, 1],
-        [0, -1, 0],
-        [1, 0, 0]
-      ],
-      negy: [
-        [1, 0, 0],
-        [0, 0, -1],
-        [0, -1, 0]
-      ],
-      posy: [
-        [1, 0, 0],
-        [0, 0, 1],
-        [0, 1, 0]
-      ],
-      negz: [
-        [-1, 0, 0],
-        [0, -1, 0],
-        [0, 0, -1]
-      ],
-      posz: [
-        [1, 0, 0],
-        [0, -1, 0],
-        [0, 0, 1]
-      ]
-    }
-    return cubemapFaceDirections[name]
-  }
+    let ret = []
+    SHCoeffiecents.forEach(item => {
+      ret.push(...item)
+    })
+    console.error(JSON.stringify(ret));
 
-  sh_eval_9(i, x, y, z) {
-    switch (i) {
-      case 0:
-        return 0.5 * Math.sqrt(1.0 / M_PI);
-      case 1:
-        return -y * 0.5 * Math.sqrt(3.0 / M_PI);
-      case 2:
-        return z * 0.5 * Math.sqrt(3.0 / M_PI);
-      case 3:
-        return -x * 0.5 * Math.sqrt(3.0 / M_PI);
-      case 4:
-        return x * y * 0.5 * Math.sqrt(15.0 / M_PI);
-      case 5:
-        return -y * z * 0.5 * Math.sqrt(15.0 / M_PI);
-      case 6:
-        return (3.0 * z * z - 1.0) * 0.25 * Math.sqrt(5.0 / M_PI);
-      case 7:
-        return -x * z * 0.5 * Math.sqrt(15.0 / M_PI);
-      case 8:
-        return (x * x - y * y) * 0.25 * Math.sqrt(15.0 / M_PI);
-      default:
-        assert(0);
-        return 0;
-    }
   }
 }
 

@@ -36,4 +36,8 @@ export default class CanvasTool {
     d[(y * w + x) * 4 + 2] = color[2]
     d[(y * w + x) * 4 + 3] = color[3]
   }
+
+  getPixelColorByIndex(index, data) {
+    return data[index]
+  }
 }
