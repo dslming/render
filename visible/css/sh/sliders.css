@@ -1,0 +1,12 @@
+.slidertable {
+    width: 100%;
+}
+
+.slidertable td {
+    padding: 0 5px;
+}
+
+.slidertable td.slidervalue {
+    width: 8ch;
+    text-align: right;
+}

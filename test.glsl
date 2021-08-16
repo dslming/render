@@ -1,45 +1,47 @@
-// Modified from https://www.shadertoy.com/view/lt2GRD
-
+// by tkstar.
+// Lighting is done by Spherical Harmonics:
+// This one is a cheap variant presented in 2001 by Ravi Ramamoorthi
 struct SHCoefficients {
     vec3 l00, l1m1, l10, l11, l2m2, l2m1, l20, l21, l22;
 };
 
-const SHCoefficients grace = SHCoefficients(
-    vec3( 1.91613, 1.71772, 1.07797),
-    vec3( -0.0591127, -0.0574315, -0.0346851 ),
-    vec3(-3.86716e-05, -2.09946e-05, -1.34999e-05 ),
-    vec3(0.439589, -0.431271, -0.0800766 ),
-    vec3(-0.0306302, 0.0319349, 0.00328068 ),
-    vec3(0.0758103, 0.0710374, 0.0591078 ),
-    vec3(0.311676, 0.269456, 0.309399 ),
-    vec3( -4.15631e-05, 6.26804e-05, 3.12491e-05 ),
-    vec3( -0.541544, -0.468526, -0.536088 )
+const SHCoefficients stpeter = SHCoefficients(
+    vec3( 1.649656, 1.818793, 1.422597),
+    vec3( -0.010007, -0.210143, -0.360245),
+    vec3( 0.003336, 0.226821, -0.443635),
+    vec3( 0.006671, -0.346903, 0.196801),
+    vec3( 0.000000, -0.000000, 0.000000),
+    vec3( -0.000000, -0.000000, -0.000000),
+    vec3( -0.901174, 0.635535, -0.212797),
+    vec3( 0.000000, -0.000000, -0.000000),
+    vec3( 0.719835, 0.279523, -0.764361)
 );
 
-vec3 calcIrradiance(vec3 nor) {
-    const SHCoefficients c = grace;
-    const float c1 = 0.429043;
-    const float c2 = 0.511664;
-    const float c3 = 0.743125;
-    const float c4 = 1.886227;
-    const float c5 = 1.247708;
-    return (
-        c1 * c.l22 * (nor.x * nor.x - nor.y * nor.y) +
-        c3 * c.l20 * nor.z * nor.z +
-        c4 * c.l00 -
-        c5 * c.l20 +
-        2.0 * c1 * c.l2m2 * nor.x * nor.y +
-        2.0 * c1 * c.l21  * nor.x * nor.z +
-        2.0 * c1 * c.l2m1 * nor.y * nor.z +
-        2.0 * c2 * c.l11  * nor.x +
-        2.0 * c2 * c.l1m1 * nor.y +
-        2.0 * c2 * c.l10  * nor.z
-    );
+vec3 calcSHIrradiance(vec3 norm, float scale){
+    const float PI = 3.1415926535897;
+    const float l0 = 1.0;
+    const float l1 = 2.0 / 3.0;
+    const float l2 = 1.0 / 4.0;
+    const float c0 = 0.282095;
+    const float c1 = 0.488603;
+    const float c2 = 1.09255;
+    const float c3 = 0.546274;
+    const float c4 = 0.315392;
+
+    const SHCoefficients c = stpeter;
+    vec3 normSqr = norm * norm;
+
+    vec3 irradiance =
+        c.l00 * c0 * l0 +
+        c1 * (-norm.y * c.l1m1 + norm.z * c.l10 - norm.x * c.l11) * l1 +
+        c2 * (-norm.x * norm.y * c.l2m2 - norm.y * norm.z * c.l2m1 - norm.x * norm.z * c.l21) * l2 +
+        c4 * (3.0 * normSqr.z - 1.0) * c.l20 * l2 +
+        c3 * (normSqr.x - normSqr.y) * c.l22 * l2;
+    return irradiance * scale;
 }
 
-vec3 spherePos = vec3(0.0, 1.0, 0.0);
-vec3 planePos = vec3(0.0, 0.05, 0.0);
-float sphereRadius = 1.0;
+vec3 spherePos = vec3(0.0, 1.0, 1.5);
+float sphereRadius = 2.5;
 
 float raytraceSphere(in vec3 ro, in vec3 rd, float tmin, float tmax, float r) {
     vec3 ce = ro - spherePos;
@@ -58,47 +60,33 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 p = (2.0 * fragCoord.xy - iResolution.xy) / iResolution.y;
 
-    vec3 eye = vec3(0.0, 2.0, 2.0);
-    vec2 rot = 6.2831 * (vec2(0.6 + iTime * 0.25, 0.0) + vec2(1.0, 0.0) * (iMouse.xy - iResolution.xy * 0.25) / iResolution.x);
+    float time = iTime;
+    vec3 eye = vec3(0.0, 3.0, 5.0);
+    vec2 rot = 6.2831 * (vec2(0.6 + time * 0.05, sin(time * 0.1) * 0.06) + vec2(1.0, 0.25) * (iMouse.xy - iResolution.xy * 0.25) / iResolution.x);
     eye.yz = cos(rot.y) * eye.yz + sin(rot.y) * eye.zy * vec2(-1.0, 1.0);
     eye.xz = cos(rot.x) * eye.xz + sin(rot.x) * eye.zx * vec2(1.0, -1.0);
 
     vec3 ro = eye;
     vec3 ta = vec3(0.0, 1.0, 0.0);
 
-    vec3 cw = normalize(ta - ro);
+    vec3 cw = normalize(ta - eye);
     vec3 cu = normalize(cross(vec3(0.0, 1.0, 0.0), cw));
     vec3 cv = normalize(cross(cw, cu));
     mat3 cam = mat3(cu, cv, cw);
 
     vec3 rd = cam * normalize(vec3(p.xy, 1.0));
 
-    vec3 col = vec3(0.0);
-    vec3 nor;
-    float occ = 1.0;
-
+    vec3 col = vec3(0, 0, 0);
     float tmin = 0.1;
     float tmax = 50.0;
-
-    // raytrace the plane
-    float tpla = 0.0;
 
     // raytrace the sphere
     float tsph = raytraceSphere(ro, rd, tmin, tmax, sphereRadius);
     if (tsph > tmin) {
         vec3 spos = ro + rd * tsph;
-        nor = normalize(spos - spherePos);
-        occ = 0.5 + 0.5 * nor.y;
+        vec3 nor = normalize(spos - spherePos);
+        col = calcSHIrradiance(nor, 2.0);
     }
 
-    if (tpla > tmin || tsph > tmin) {
-        col = calcIrradiance(nor) * occ;
-
-        // distant fog if we don't hit the sphere
-        if (tsph < tmin) {
-            col = mix(col, vec3(0.0), 1.0 - exp(-0.001 * tpla * tpla));
-        }
-    }
-
-	fragColor = vec4(col, 1.0);
+    fragColor = vec4(col, 1.0);
 }

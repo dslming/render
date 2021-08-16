@@ -1,210 +1,114 @@
-import { Promise } from 'bluebird'
+import Stage from 'three_stage'
 import * as THREE from 'three'
-import sh from './sh'
-
-const SHOrder = 2
-const FACE_NAME = {
-  CUBE_FACE_LEFT: 0, //negx
-  CUBE_FACE_BOTTOM: 1,//negy
-  CUBE_FACE_BACK: 2, //negz
-  CUBE_FACE_RIGHT: 3, //posx
-  CUBE_FACE_TOP: 4, //posy
-  CUBE_FACE_FRONT: 5, //posz
-}
-
+import CubeToSH from './CubeToSH'
+import sh from 'cubemap-sh'
 class App {
   constructor() {
-    const path = "Indoor"
-    this.urls = [
-      {
-        url: `./${path}/negx.jpg`,
-        name: FACE_NAME.CUBE_FACE_LEFT
-      },
-      {
-        url: `./${path}/posx.jpg`,
-        name: FACE_NAME.CUBE_FACE_RIGHT
-      },
-       {
-         url: `./${path}/posy.jpg`,
-         name: FACE_NAME.CUBE_FACE_TOP
-      },
-        {
-          url: `./${path}/negy.jpg`,
-          name: FACE_NAME.CUBE_FACE_BOTTOM
-      },
-        {
-          url: `./${path}/posz.jpg`,
-          name: FACE_NAME.CUBE_FACE_FRONT
-        },
-      {
-        url: `./${path}/negz.jpg`,
-        name: FACE_NAME.CUBE_FACE_BACK
-      },
-    ]
-    this.getAllImage()
+    this.stage = new Stage("#app")
+    this.stage.run()
+    // this.addSphere(10)
+    new CubeToSH()
+    this.sh()
+
+
 
   }
 
-  async getAllImage() {
-    const images = []
-    for (let i = 0; i < this.urls.length; i++) {
-      const {url,name} = this.urls[i]
-      images[i] = await this.getImage(url, name)
-    }
-    const w =256
-    this.PrecomputeCubemapSH(images,w, w)
-  }
-
-  getImage(url,name) {
+  getImage(url, name) {
     return new Promise((resolve, rejuct) => {
-       let loader = new THREE.TextureLoader()
-       var canvas = document.createElement('canvas');
+      let loader = new THREE.TextureLoader()
+      var canvas = document.createElement('canvas');
       //  var canvas = document.querySelector("#debug")
-       const ctx = canvas.getContext("2d")
-       loader.load(url, res => {
+      const ctx = canvas.getContext("2d")
+      loader.load(url, res => {
         const img = res.image
         const { width, height } = img
         canvas.width = width
         canvas.height = height
         ctx.drawImage(img, 0, 0, width, height)
-         const imageData = ctx.getImageData(0, 0, width, height)
-         imageData.name = name
-         //  const color = CanvasTool.getPixelColor(0, 0, width, imageData.data)
-         resolve(imageData)
-       }, err => {
-         rejuct(err)
-       })
-     })
-  }
-
-  CalcPreArea( x,y) {
-    return Math.atan2(x * y, Math.sqrt(x * x + y * y + 1.0));
-  }
-
-  // 计算立体角
-  CalcArea(x, y, width, height) {
-    const u = (2.0 * (x + 0.5) / width) - 1.0;
-    const v = (2.0 * (y + 0.5) / height) - 1.0;
-    const invResolutionW = 1.0 / width;
-    const invResolutionH = 1.0 / height;
-
-    const x0 = u - invResolutionW;
-    const y0 = v - invResolutionH;
-    const x1 = u + invResolutionW;
-    const y1 = v + invResolutionH;
-    const angle =
-      this.CalcPreArea(x0, y0) -
-      this.CalcPreArea(x0, y1) -
-      this.CalcPreArea(x1, y0) +
-      this.CalcPreArea(x1, y1);
-    return angle
-  }
-
-  PrecomputeCubemapSH(images, width, height) {
-    const CUBE_FACE_COUNT = 6
-    const SHCoeffiecents = []
-    const channel = 4
-
-     const cubemapFaceDirections = [
-       [
-         [0, 0, 1],
-         [0, -1, 0],
-         [-1, 0, 0]
-       ], // negx
-       [
-         [0, 0, 1],
-         [0, -1, 0],
-         [1, 0, 0]
-       ], // posx
-       [
-         [1, 0, 0],
-         [0, 0, -1],
-         [0, -1, 0]
-       ], // negy
-       [
-         [1, 0, 0],
-         [0, 0, 1],
-         [0, 1, 0]
-       ], // posy
-       [
-         [-1, 0, 0],
-         [0, -1, 0],
-         [0, 0, -1]
-       ], // negz
-       [
-         [1, 0, 0],
-         [0, -1, 0],
-         [0, 0, 1]
-       ], // posz
-     ]
-    const cubemapDirs = []
-    for (let i = 0; i < CUBE_FACE_COUNT; i++) {
-       const faceDirX = cubemapFaceDirections[i][0];
-       const faceDirY = cubemapFaceDirections[i][1];
-       const faceDirZ = cubemapFaceDirections[i][2];
-       for (let y = 0; y < height; y+=1) {
-         for (let x = 0; x < width; x+=1) {
-           const u = 2 * ((x + 0.5) / width) - 1;
-           const v = 2 * ((y + 0.5) / height) - 1;
-           const vec3X = new THREE.Vector3(faceDirX[0], faceDirX[1], faceDirX[2])
-           const vec3Y = new THREE.Vector3(faceDirY[0], faceDirY[1], faceDirY[2])
-           const vec3Z = new THREE.Vector3(faceDirZ[0], faceDirZ[1], faceDirZ[2])
-           vec3X.multiplyScalar(u)
-           vec3Y.multiplyScalar(v)
-           const dir = vec3X.add(vec3Y).add(vec3Z).normalize()
-           cubemapDirs.push(dir);
-         }
-       }
-    }
-
-    const SHNum = (SHOrder + 1) * (SHOrder + 1);
-
-    for (let i = 0; i < SHNum; i += 1) {
-      SHCoeffiecents[i] = [
-        0,0,0
-      ]
-    }
-
-    for (let i = 0; i < CUBE_FACE_COUNT; i+=1) {
-      for (let y = 0; y < height; y+=1) {
-        for (let x = 0; x < width; x += 1) {
-          // 拿到该像素的方向
-          const dir = cubemapDirs[i * width * height + y * width + x];
-          const index = (y * width + x) * channel;
-          const Le = [
-            images[i].data[index + 0]/255,
-            images[i].data[index + 1]/255,
-            images[i].data[index + 2]/255,
-          ]
-
-          // 像素所代表的矩形区域投影到单位球面的面积
-          const wOmege = this.CalcArea(x, y, width, height);
-
-          // 投影
-          for (let l = 0; l <= SHOrder; l+=1) {
-            for (let m = -l; m <= l; m+=1) {
-              let k = sh.GetIndex(l, m);
-              const basisFunc = sh.EvalSH(l, m, dir);
-
-              // 对于 cubemap 中的每一处光线，
-              // 都去累加它们把灯光 Le，
-              // 以 wOmege面积投影在 basisFunc 上的系数
-              // 得到的结果一系列近似了环境光球面的 SH 系数
-              SHCoeffiecents[k][0] += Le[0] * wOmege * basisFunc;
-              SHCoeffiecents[k][1] += Le[1] * wOmege * basisFunc;
-              SHCoeffiecents[k][2] += Le[2] * wOmege * basisFunc;
-            }
-          }
-        }
-      }
-    }
-
-    let ret = []
-    SHCoeffiecents.forEach(item => {
-      ret.push(...item)
+        const imageData = ctx.getImageData(0, 0, width, height)
+        resolve(imageData.data)
+      }, err => {
+        rejuct(err)
+      })
     })
-    console.error(JSON.stringify(ret));
+  }
 
+  async sh() {
+    const path = "CornellBox"
+    this.urls = [
+       {
+         url: `./${path}/posx.jpg`,
+      },
+      {
+         url: `./${path}/negx.jpg`,
+      },
+        {
+          url: `./${path}/posy.jpg`,
+        },
+       {
+         url: `./${path}/negy.jpg`,
+      },
+         {
+           url: `./${path}/posz.jpg`,
+         },
+       {
+         url: `./${path}/negz.jpg`,
+       },
+
+    ]
+    const images = []
+    for (let i = 0; i < this.urls.length; i++) {
+      const { url, name } = this.urls[i]
+      images[i] = await this.getImage(url, name)
+    }
+
+     const CUBE_MAP_SIZE = 128
+     const NUM_CHANNELS = 4
+    const coefficients = sh(images, CUBE_MAP_SIZE, NUM_CHANNELS)
+
+    let ret = ""
+      coefficients.forEach(item => {
+        ret += `${item[0].toFixed(6)}, ${item[1].toFixed(6)},${item[2].toFixed(6)},`
+        ret += `
+      `
+      })
+      console.error(ret);
+  }
+  // addBox(size) {
+  //   var geometry = new THREE.SphereBufferGeometry(size, size, size);
+  //   var material = new THREE.MeshPhongMaterial({
+  //     color: 0x63e42a,
+  //     emissive: 0x072534,
+  //     side: THREE.DoubleSide,
+  //     shading: THREE.FlatShading
+  //   })
+  //   var cube = new THREE.Mesh(geometry, material);
+  //   cube.name = "test_cube"
+  //   this.stage.scene.add(cube)
+  //     this.stage.onUpdate(() => {
+  //   })
+  // }
+
+  addSphere(size) {
+    var geometry = new THREE.SphereBufferGeometry(size, 64, 64); //立方体
+
+    var loader = new THREE.CubeTextureLoader();
+    // 所有贴图在同一目录下，可以使用该方法设置共用路径
+    loader.setPath('Indoor/');
+    // 立方体纹理加载器返回立方体纹理对象CubeTexture
+    var CubeTexture = loader.load(['posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg']);
+    //材质对象Material
+    var material = new THREE.MeshPhongMaterial({
+      //网格模型设置颜色，网格模型颜色和环境贴图会进行融合计算
+      // color:0xff0000,
+      envMap: CubeTexture, //设置环境贴图
+      // 环境贴图反射率   控制环境贴图对被渲染三维模型影响程度
+      // reflectivity: 0.1,
+    });
+    console.log(CubeTexture.image);
+    var mesh = new THREE.Mesh(geometry, material); //网格模型对象Mesh
+    this.stage.scene.add(mesh); //网格模型添加到场景中
   }
 }
 
