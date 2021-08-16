@@ -1,17 +1,14 @@
 import Stage from 'three_stage'
 import * as THREE from 'three'
 import CubeToSH from './CubeToSH'
-import sh from 'cubemap-sh'
+// import sh from 'cubemap-sh'
 class App {
   constructor() {
     this.stage = new Stage("#app")
     this.stage.run()
     // this.addSphere(10)
     new CubeToSH()
-    this.sh()
-
-
-
+    // this.sh()
   }
 
   getImage(url, name) {

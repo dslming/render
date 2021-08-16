@@ -3,40 +3,95 @@ import * as THREE from 'three'
 import sh from './sh'
 
 const SHOrder = 2
-
+let ctx = null
+const posMap = {
+  posx: {
+    x: 3,
+    y: 1
+  },
+  negx: {
+    x: 1,
+    y: 1,
+  },
+  negy: {
+    x: 1,
+    y: 2,
+  },
+  posy: {
+    x: 1,
+    y: 0,
+  },
+  negz: {
+    x: 0,
+    y: 1,
+  },
+  posz: {
+    x: 2,
+    y:1
+  }
+}
 export default class CubeToSH {
   constructor() {
+    const cubemap = document.querySelector("#cubemap")
+    cubemap.width = 128*4
+    cubemap.height = 128*3
+    ctx = cubemap.getContext("2d")
     const path = "CornellBox"
     this.urls = [{
-        url: `./${path}/negx.jpg`,
+      url: `./${path}/negx.jpg`,
+      name: "negx"
       },
       {
         url: `./${path}/posx.jpg`,
+      name: "posx"
+
       },
        {
          url: `./${path}/negy.jpg`,
+      name: "negy"
+
        },
       {
         url: `./${path}/posy.jpg`,
+      name: "posy"
+
       },
       {
         url: `./${path}/negz.jpg`,
+      name: "negz"
+
       },
       {
         url: `./${path}/posz.jpg`,
+      name: "posz"
+
       },
     ]
     this.getAllImage()
-
   }
 
   async getAllImage() {
+    const w = 128
     const images = []
     for (let i = 0; i < this.urls.length; i++) {
       const { url, name } = this.urls[i]
       images[i] = await this.getImage(url, name)
+      const { x, y } = posMap[name]
+      const posX = w * x;
+      const posY = w * y;
+      ctx.putImageData(images[i], posX, posY)
+      ctx.font = "18px bold 黑体";
+      ctx.fillStyle = "#000";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(name, posX+w/2, posY+w/2);
     }
-    const w = 128
+    // ctx.putImageData(images[3], w*1, 0)
+    // ctx.putImageData(images[4], w*0, w*1)
+    // ctx.putImageData(images[0], w*1, w*1)
+    // ctx.putImageData(images[5], w*2, w*1)
+    // ctx.putImageData(images[1], w*3, w*1)
+    // ctx.putImageData(images[2], w*1, w*2)
     this.PrecomputeCubemapSH(images, w, w)
   }
 
@@ -191,7 +246,8 @@ export default class CubeToSH {
       ret += `
       `
     })
-    console.error(ret);
+    // console.error(ret);
+    document.querySelector("#sh").innerText = ret
 
   }
 }

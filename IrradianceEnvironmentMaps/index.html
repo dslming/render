@@ -18,17 +18,34 @@
       }
 
       #app {
-        width: 100%;
+        width: calc(100% - 512px);
         height: 100%;
       }
 
       canvas {
         background: #86d5c7;
       }
+
+      .cubemapToSh {
+        position: absolute;
+        z-index: 9999;
+        right: 0;
+      }
+      .ret {
+
+    background-color: #ddd;
+
+      }
     </style>
   </head>
   <body>
-    <div id="app">
+    <div class="cubemapToSh">
+      <canvas id="cubemap"></canvas>
+      <div class="ret">
+        <h5>cubemap to sh</h5>
+        <p id="sh">123</p>
+      </div>
     </div>
+    <div id="app"></div>
   </body>
 </html>
