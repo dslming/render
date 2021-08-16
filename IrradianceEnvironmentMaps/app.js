@@ -2,13 +2,18 @@ import Stage from 'three_stage'
 import * as THREE from 'three'
 import CubeToSH from './CubeToSH'
 // import sh from 'cubemap-sh'
+import TTT from './SHTo'
+
 class App {
   constructor() {
     this.stage = new Stage("#app")
     this.stage.run()
+    this.stage.camera.position.z = 10
     // this.addSphere(10)
     new CubeToSH()
+    let sh = new TTT()
     // this.sh()
+    this.stage.scene.add(sh.mesh)
   }
 
   getImage(url, name) {
