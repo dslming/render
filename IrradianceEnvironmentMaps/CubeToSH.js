@@ -38,23 +38,30 @@ export default class CubeToSH {
     ctx = cubemap.getContext("2d")
     const path = "CornellBox"
     this.cb = cb
-    this.urls = [{
+    this.urls = [
+      {
+        url: `./${path}/posx.jpg`,
+        name: "posx"
+
+      },
+      {
       url: `./${path}/negx.jpg`,
       name: "negx"
       },
-      {
-        url: `./${path}/posx.jpg`,
-      name: "posx"
 
-      },
+       {
+         url: `./${path}/posy.jpg`,
+         name: "posy"
+
+       },
        {
          url: `./${path}/negy.jpg`,
       name: "negy"
 
        },
       {
-        url: `./${path}/posy.jpg`,
-      name: "posy"
+        url: `./${path}/posz.jpg`,
+        name: "posz"
 
       },
       {
@@ -62,11 +69,7 @@ export default class CubeToSH {
       name: "negz"
 
       },
-      {
-        url: `./${path}/posz.jpg`,
-      name: "posz"
 
-      },
     ]
     this.getAllImage()
   }
