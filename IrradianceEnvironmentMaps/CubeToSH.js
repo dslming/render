@@ -31,12 +31,13 @@ const posMap = {
   }
 }
 export default class CubeToSH {
-  constructor() {
+  constructor(cb) {
     const cubemap = document.querySelector("#cubemap")
     cubemap.width = 128*4
     cubemap.height = 128*3
     ctx = cubemap.getContext("2d")
     const path = "CornellBox"
+    this.cb = cb
     this.urls = [{
       url: `./${path}/negx.jpg`,
       name: "negx"
@@ -248,6 +249,13 @@ export default class CubeToSH {
     })
     // console.error(ret);
     document.querySelector("#sh").innerText = ret
+
+    let arr = []
+    SHCoeffiecents.forEach(item => {
+      arr.push(...item)
+    })
+    // console.error(arr);
+    this.cb && this.cb(arr)
 
   }
 }

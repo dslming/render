@@ -10,8 +10,12 @@ class App {
     this.stage.run()
     this.stage.camera.position.z = 10
     // this.addSphere(10)
-    new CubeToSH()
-    let sh = new TTT()
+    let sh = new TTT();
+
+    var cb = ret => {
+      sh.setSh(ret)
+    }
+    let s = new CubeToSH(cb)
     // this.sh()
     this.stage.scene.add(sh.mesh)
   }
