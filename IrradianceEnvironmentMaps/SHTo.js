@@ -4,6 +4,10 @@ import * as THREE from 'three'
 import { getDiffuseSHCoefficients } from './shpoly'
 
 import * as dat from "dat.gui";
+
+/**
+ * 恢复sh系数
+ */
 class Options {
   constructor() {
     this.exposure = 2.6
