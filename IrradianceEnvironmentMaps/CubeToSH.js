@@ -31,13 +31,12 @@ const posMap = {
   }
 }
 export default class CubeToSH {
-  constructor(cb) {
-    const cubemap = document.querySelector("#cubemap")
-    cubemap.width = 128*4
-    cubemap.height = 128*3
-    ctx = cubemap.getContext("2d")
+  constructor() {
+    // const cubemap = document.querySelector("#cubemap")
+    // cubemap.width = 128*4
+    // cubemap.height = 128*3
+    // ctx = cubemap.getContext("2d")
     const path = "CornellBox"
-    this.cb = cb
     this.urls = [
       {
         url: `./${path}/posx.jpg`,
@@ -71,32 +70,26 @@ export default class CubeToSH {
       },
 
     ]
-    this.getAllImage()
+    // this.getAllImage()
   }
 
-  async getAllImage() {
+  async getSHCoeffiecents() {
     const w = 128
     const images = []
     for (let i = 0; i < this.urls.length; i++) {
       const { url, name } = this.urls[i]
       images[i] = await this.getImage(url, name)
-      const { x, y } = posMap[name]
-      const posX = w * x;
-      const posY = w * y;
-      ctx.putImageData(images[i], posX, posY)
-      ctx.font = "18px bold 黑体";
-      ctx.fillStyle = "#000";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(name, posX+w/2, posY+w/2);
+      // const { x, y } = posMap[name]
+      // const posX = w * x;
+      // const posY = w * y;
+      // ctx.putImageData(images[i], posX, posY)
+      // ctx.font = "18px bold 黑体";
+      // ctx.fillStyle = "#000";
+      // ctx.textAlign = "center";
+      // ctx.textBaseline = "middle";
+      // ctx.fillText(name, posX+w/2, posY+w/2);
     }
-    // ctx.putImageData(images[3], w*1, 0)
-    // ctx.putImageData(images[4], w*0, w*1)
-    // ctx.putImageData(images[0], w*1, w*1)
-    // ctx.putImageData(images[5], w*2, w*1)
-    // ctx.putImageData(images[1], w*3, w*1)
-    // ctx.putImageData(images[2], w*1, w*2)
-    this.PrecomputeCubemapSH(images, w, w)
+    return this.PrecomputeCubemapSH(images, w, w)
   }
 
   getImage(url, name) {
@@ -244,22 +237,22 @@ export default class CubeToSH {
       }
     }
 
-    let ret = ""
-    SHCoeffiecents.forEach(item => {
-      ret += `${item[0].toFixed(6)}, ${item[1].toFixed(6)},${item[2].toFixed(6)},`
-      ret += `
-      `
-    })
-    // console.error(ret);
-    document.querySelector("#sh").innerText = ret
+    // let ret = ""
+    // SHCoeffiecents.forEach(item => {
+    //   ret += `${item[0].toFixed(6)}, ${item[1].toFixed(6)},${item[2].toFixed(6)},`
+    //   ret += `
+    //   `
+    // })
+    // // console.error(ret);
+    // document.querySelector("#sh").innerText = ret
 
     let arr = []
     SHCoeffiecents.forEach(item => {
       arr.push(...item)
     })
-    // console.error(arr);
-    this.cb && this.cb(arr)
-
+    // // console.error(arr);
+    // this.cb && this.cb(arr)
+    return arr
   }
 }
 
