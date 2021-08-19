@@ -26,6 +26,9 @@ class App {
     run.setLight(light)
     run.setTrans(trans)
     const mesh = await run.getMesh()
+    mesh.name = "123"
+    console.error(mesh);
+
     this.stage.scene.add(mesh)
   }
 }

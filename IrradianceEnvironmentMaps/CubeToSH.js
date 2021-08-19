@@ -246,13 +246,13 @@ export default class CubeToSH {
     // // console.error(ret);
     // document.querySelector("#sh").innerText = ret
 
-    let arr = []
-    SHCoeffiecents.forEach(item => {
-      arr.push(...item)
-    })
+    // let arr = []
+    // SHCoeffiecents.forEach(item => {
+    //   arr.push(...item)
+    // })
     // // console.error(arr);
     // this.cb && this.cb(arr)
-    return arr
+    return SHCoeffiecents
   }
 }
 

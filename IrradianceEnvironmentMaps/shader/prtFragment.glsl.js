@@ -25,7 +25,7 @@ vec3 SHrecon(mat3 uPrecomputeLR, mat3 uPrecomputeLG, mat3 uPrecomputeLB, mat3 vP
 
 void main(void){
     vec3 result = SHrecon(uPrecomputeLR, uPrecomputeLG, uPrecomputeLB, vPrecomputeLT);
-    gl_FragColor = vec4(result,1);
+    gl_FragColor = vec4(result, 1);
 }`
 
 
