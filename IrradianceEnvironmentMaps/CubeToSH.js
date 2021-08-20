@@ -255,5 +255,43 @@ export default class CubeToSH {
     // this.cb && this.cb(arr)
     return SHCoeffiecents
   }
+
+  getMat(map) {
+      const size = 10
+      let geo = new THREE.BoxBufferGeometry(size, size, size)
+      return new THREE.MeshBasicMaterial({
+        map: map
+      })
+  }
+  visible() {
+    let urls = []
+    this.urls.forEach(element => {
+      urls.push(element.url)
+    });
+    const size = 1000
+    const textureCube = new THREE.CubeTextureLoader().load(urls);
+    let geo = new THREE.BoxBufferGeometry(size, size, size)
+    let mat = new THREE.MeshBasicMaterial({
+      envMap: textureCube,
+      side: THREE.BackSide
+    })
+    return new THREE.Mesh(geo, mat)
+
+    // const ts = []
+    // let loader = new THREE.TextureLoader()
+    // for (let i = 0; i < this.urls.length; i++){
+    //   loader.load(this.urls[i].url, t => {
+    //     ts.push({
+    //       t,
+    //       name: this.urls[i].name
+    //     })
+    //     if (ts.length == 6) {
+    //       console.error(ts);
+
+    //     }
+    //   })
+    // }
+
+  }
 }
 

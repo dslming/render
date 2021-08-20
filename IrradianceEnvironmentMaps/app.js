@@ -18,20 +18,23 @@ class App {
 
   async init() {
     const shLight = new CubeToSH()
+    const skybox = shLight.visible()
     const light = await shLight.getSHCoeffiecents()
+    this.stage.scene.add(skybox)
+
     // console.error(light);
 
-    const shTrans = new Transport()
-    const trans = await shTrans.getTrans()
+    // const shTrans = new Transport()
+    // const trans = await shTrans.getTrans()
 
-    const run = new Run()
-    run.setLight(light)
-    run.setTrans(trans)
-    const mesh = await run.getMesh()
-    mesh.name = "123"
-    console.error(mesh);
+    // const run = new Run()
+    // run.setLight(light)
+    // run.setTrans(trans)
+    // const mesh = await run.getMesh()
+    // mesh.name = "123"
+    // console.error(mesh);
 
-    this.stage.scene.add(mesh)
+    // this.stage.scene.add(mesh)
   }
 }
 
