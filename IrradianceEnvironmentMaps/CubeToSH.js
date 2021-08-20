@@ -1,36 +1,12 @@
 import { Promise } from 'bluebird'
 import * as THREE from 'three'
 import sh from './sh'
-import global from './global'
+import skyFrag from './shader/SkyBoxFragment.glsl'
+import skyVert from './shader/SkyBoxVertex.glsl'
+
 
 const SHOrder = 2
-let ctx = null
-const posMap = {
-  posx: {
-    x: 3,
-    y: 1
-  },
-  negx: {
-    x: 1,
-    y: 1,
-  },
-  negy: {
-    x: 1,
-    y: 2,
-  },
-  posy: {
-    x: 1,
-    y: 0,
-  },
-  negz: {
-    x: 0,
-    y: 1,
-  },
-  posz: {
-    x: 2,
-    y:1
-  }
-}
+
 export default class CubeToSH {
   constructor() {
     // const cubemap = document.querySelector("#cubemap")
@@ -263,19 +239,38 @@ export default class CubeToSH {
         map: map
       })
   }
-  visible() {
+  visible(cb) {
     let urls = []
     this.urls.forEach(element => {
       urls.push(element.url)
     });
-    const size = 1000
-    const textureCube = new THREE.CubeTextureLoader().load(urls);
-    let geo = new THREE.BoxBufferGeometry(size, size, size)
+
     let mat = new THREE.MeshBasicMaterial({
-      envMap: textureCube,
-      side: THREE.BackSide
+      side: THREE.BackSide,
+      color:0x00ff00
     })
-    return new THREE.Mesh(geo, mat)
+
+    new THREE.CubeTextureLoader().load(urls, t => {
+      const size = 10
+       var basicShader = new THREE.ShaderMaterial({
+         uniforms: {
+           'skybox': { value: t },
+         },
+         vertexShader: skyVert,
+         fragmentShader: skyFrag,
+         side: THREE.BackSide
+       });
+      let geo = new THREE.BoxBufferGeometry(size, size, size)
+      const mesh = new THREE.Mesh(geo, basicShader)
+      mesh.name = "skybox"
+      cb(mesh)
+    });
+
+    // let mat = new THREE.MeshBasicMaterial({
+    //   envMap: textureCube,
+    //   side: THREE.BackSide
+    // })
+
 
     // const ts = []
     // let loader = new THREE.TextureLoader()

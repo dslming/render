@@ -66,7 +66,10 @@ export default class Run {
      return new Promise((resolve, reject) => {
        let loader = new OBJLoader()
        loader.load(global.objName, obj => {
-        const model = obj.children[0]
+         const model = obj.children[0]
+         const scale = 20
+         model.scale.set(scale, scale, scale)
+         model.position.set(0.5,-1.5,0)
         model.material = basicShader;
         this.render([model])
          resolve(model)

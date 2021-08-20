@@ -12,29 +12,31 @@ class App {
     this.stage.run()
     this.stage.camera.position.z = 20
     this.stage.camera.position.near = 1
-    this.stage.camera.position.far = 1000
+    this.stage.camera.position.far = 10000
     this.init()
   }
 
   async init() {
     const shLight = new CubeToSH()
-    const skybox = shLight.visible()
+    shLight.visible((skybox) => {
+      this.stage.scene.add(skybox)
+    })
     const light = await shLight.getSHCoeffiecents()
-    this.stage.scene.add(skybox)
+
 
     // console.error(light);
 
-    // const shTrans = new Transport()
-    // const trans = await shTrans.getTrans()
+    const shTrans = new Transport()
+    const trans = await shTrans.getTrans()
 
-    // const run = new Run()
-    // run.setLight(light)
-    // run.setTrans(trans)
-    // const mesh = await run.getMesh()
-    // mesh.name = "123"
-    // console.error(mesh);
+    const run = new Run()
+    run.setLight(light)
+    run.setTrans(trans)
+    const mesh = await run.getMesh()
+    mesh.name = "123"
+    console.error(mesh);
 
-    // this.stage.scene.add(mesh)
+    this.stage.scene.add(mesh)
   }
 }
 
