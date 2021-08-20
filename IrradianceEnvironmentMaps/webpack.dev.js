@@ -2,9 +2,10 @@ const path = require('path')
 const WebpackBar = require('webpackbar')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+const pageName = "visibleShPage"
 module.exports = {
   mode: "development",
-  entry: "./app.js",
+  entry: `./${pageName}/app.js`,
   output: {
     filename: "build.js",
     path: path.join(__dirname, "./dist")
@@ -22,7 +23,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: "hello",
       filename: "index.html",
-      template: "./index.html",
+      template: `./${pageName}/index.html`,
       inject: true
     })
   ],

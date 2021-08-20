@@ -1,6 +1,6 @@
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader'
 import * as THREE from 'three'
-import { SHEval } from './sh2'
+import { SHEval } from './sh'
 import global from './global'
 
 var N_MONTE_CARLO = 100;

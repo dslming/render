@@ -1,18 +1,17 @@
 import { Promise } from 'bluebird'
 import * as THREE from 'three'
-import sh from './sh'
+import { SHEval3 } from './sh'
 import skyFrag from './shader/SkyBoxFragment.glsl'
 import skyVert from './shader/SkyBoxVertex.glsl'
 
 
 const SHOrder = 2
 
-export default class CubeToSH {
+/**
+ * 立方体贴图转3阶段球谐函数系数
+ */
+export default class CubeMapToSHCoefficient {
   constructor() {
-    // const cubemap = document.querySelector("#cubemap")
-    // cubemap.width = 128*4
-    // cubemap.height = 128*3
-    // ctx = cubemap.getContext("2d")
     const path = "CornellBox"
     this.urls = [
       {
@@ -47,7 +46,6 @@ export default class CubeToSH {
       },
 
     ]
-    // this.getAllImage()
   }
 
   async getSHCoeffiecents() {
@@ -56,15 +54,6 @@ export default class CubeToSH {
     for (let i = 0; i < this.urls.length; i++) {
       const { url, name } = this.urls[i]
       images[i] = await this.getImage(url, name)
-      // const { x, y } = posMap[name]
-      // const posX = w * x;
-      // const posY = w * y;
-      // ctx.putImageData(images[i], posX, posY)
-      // ctx.font = "18px bold 黑体";
-      // ctx.fillStyle = "#000";
-      // ctx.textAlign = "center";
-      // ctx.textBaseline = "middle";
-      // ctx.fillText(name, posX+w/2, posY+w/2);
     }
     return this.PrecomputeCubemapSH(images, w, w)
   }
@@ -196,49 +185,18 @@ export default class CubeToSH {
           const wOmege = this.CalcArea(x, y, width, height);
 
           // 投影
-          for (let l = 0; l <= SHOrder; l += 1) {
-            for (let m = -l; m <= l; m += 1) {
-              let k = sh.GetIndex(l, m);
-              const basisFunc = sh.EvalSH(l, m, dir);
-
-              // 对于 cubemap 中的每一处光线，
-              // 都去累加它们把灯光 Le，
-              // 以 wOmege面积投影在 basisFunc 上的系数
-              // 得到的结果一系列近似了环境光球面的 SH 系数
-              SHCoeffiecents[k][0] += Le[0] * wOmege * basisFunc;
-              SHCoeffiecents[k][1] += Le[1] * wOmege * basisFunc;
-              SHCoeffiecents[k][2] += Le[2] * wOmege * basisFunc;
-            }
+          const basisFunc = SHEval3(dir.x, dir.y, dir.z)
+          for (let k = 0; k < 9; k++) {
+              SHCoeffiecents[k][0] += Le[0] * wOmege * basisFunc[k];
+              SHCoeffiecents[k][1] += Le[1] * wOmege * basisFunc[k];
+              SHCoeffiecents[k][2] += Le[2] * wOmege * basisFunc[k];
           }
         }
       }
     }
-
-    // let ret = ""
-    // SHCoeffiecents.forEach(item => {
-    //   ret += `${item[0].toFixed(6)}, ${item[1].toFixed(6)},${item[2].toFixed(6)},`
-    //   ret += `
-    //   `
-    // })
-    // // console.error(ret);
-    // document.querySelector("#sh").innerText = ret
-
-    // let arr = []
-    // SHCoeffiecents.forEach(item => {
-    //   arr.push(...item)
-    // })
-    // // console.error(arr);
-    // this.cb && this.cb(arr)
     return SHCoeffiecents
   }
 
-  getMat(map) {
-      const size = 10
-      let geo = new THREE.BoxBufferGeometry(size, size, size)
-      return new THREE.MeshBasicMaterial({
-        map: map
-      })
-  }
   visible(cb) {
     let urls = []
     this.urls.forEach(element => {
@@ -265,28 +223,6 @@ export default class CubeToSH {
       mesh.name = "skybox"
       cb(mesh)
     });
-
-    // let mat = new THREE.MeshBasicMaterial({
-    //   envMap: textureCube,
-    //   side: THREE.BackSide
-    // })
-
-
-    // const ts = []
-    // let loader = new THREE.TextureLoader()
-    // for (let i = 0; i < this.urls.length; i++){
-    //   loader.load(this.urls[i].url, t => {
-    //     ts.push({
-    //       t,
-    //       name: this.urls[i].name
-    //     })
-    //     if (ts.length == 6) {
-    //       console.error(ts);
-
-    //     }
-    //   })
-    // }
-
   }
 }
 

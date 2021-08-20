@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>cube map to sh</title>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #app {
+        /* width: calc(100% - 512px); */
+        width: 100%;
+        height: 100%;
+      }
+
+      canvas {
+        background: #86d5c625;
+      }
+
+      .cubemapToSh {
+        position: absolute;
+        z-index: 9999;
+        right: 0;
+        top: 20px
+      }
+
+      .ret {
+        background-color: #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cubemapToSh">
+      <div class="upload">
+         <p>选择立方体贴图...</p>
+        <div class="item">
+           <label for="posx">posx:</label>
+          <input id="posx" type="file" onchange="handleImage(this)"/>
+        </div>
+
+      <div class="item"></div>
+         <label for="negx">negx:</label>
+        <input id="negx" type="file" onchange="handleImage(this)"/>
+
+         <div class="item">
+           <label for="posy">posy:</label>
+        <input id="posy" type="file" onchange="handleImage(this)"/>
+         </div>
+
+
+         <div class="item">
+           <label for="negy">negy:</label>
+        <input id="negy" type="file" onchange="handleImage(this)"/>
+         </div>
+
+
+         <div class="item">
+             <label for="posz">posz:</label>
+        <input id="posz" type="file" onchange="handleImage(this)"/>
+         </div>
+
+
+         <div class="item">
+          <label for="negz">negz:</label>
+          <input id="negz" type="file" onchange="handleImage(this)"/>
+         </div>
+
+      </div>
+      <div class="ret">
+        <p>cubemap to sh coeffiecents:</p>
+        <p id="sh"></p>
+      </div>
+    </div>
+    <div id="app"></div>
+  </body>
+</html>
