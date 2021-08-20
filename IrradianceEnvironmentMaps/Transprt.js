@@ -1,6 +1,7 @@
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader'
 import * as THREE from 'three'
 import { SHEval } from './sh2'
+import global from './global'
 
 var N_MONTE_CARLO = 100;
 var RAY_OFFSET = 1e-18;
@@ -94,7 +95,7 @@ export default class Transprt {
   getTrans() {
     return new Promise((resolve, reject) => {
        let loader = new OBJLoader()
-       loader.load("./assets/teapot.obj", obj => {
+       loader.load(global.objName, obj => {
          const model = obj.children[0]
          // cb(model)
          objects = [model]
@@ -134,7 +135,12 @@ export default class Transprt {
 
     console.log("[compute G done]");
     // console.error(PRTCache);
-    return PRTCache
+    PRTCache = PRTCache[0]
+      let arr = []
+      PRTCache.forEach(item => {
+        arr.push(...item)
+      })
+    return arr
   }
 
   calc(model) {

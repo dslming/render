@@ -10,7 +10,9 @@ class App {
   constructor() {
     this.stage = new Stage("#app")
     this.stage.run()
-    this.stage.camera.position.z = 10
+    this.stage.camera.position.z = 20
+    this.stage.camera.position.near = 1
+    this.stage.camera.position.far = 1000
     this.init()
   }
 

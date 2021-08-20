@@ -1,6 +1,7 @@
 import { Promise } from 'bluebird'
 import * as THREE from 'three'
 import sh from './sh'
+import global from './global'
 
 const SHOrder = 2
 let ctx = null
