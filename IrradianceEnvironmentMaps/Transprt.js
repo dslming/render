@@ -1,6 +1,6 @@
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader'
 import * as THREE from 'three'
-import { SHEval } from './sh'
+import { SHEval3 } from './sh'
 import global from './global'
 
 var N_MONTE_CARLO = 100;
@@ -72,7 +72,7 @@ function computeG(G, v, verts, normals, samples) {
     var pWi = 1.0 / (4.0 * Math.PI);
     var V = bvh.intersectRay(p, w, true).length == 0;
     if (V) {
-      var yi = SHEval(w.x, w.y, w.z, N_ORDER);
+      var yi = SHEval3(w.x, w.y, w.z, N_ORDER);
       for (var k = 0; k < N_COEFFS; k++) {
         G[v][k] += cosTheta * yi[k];
       }
