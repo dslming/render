@@ -1,8 +1,8 @@
 import Stage from 'three_stage'
-import * as THREE from 'three'
-import CubeToSH from './CubeToSH'
+// import * as THREE from 'three'
+import CubeToSH from './CubeMapToSHCoefficient'
 // import sh from 'cubemap-sh'
-import SHTo from './SHTo'
+// import SHTo from './SHTo'
 import Transport from './Transprt'
 import Run from './run'
 
@@ -28,13 +28,15 @@ class App {
 
     const shTrans = new Transport()
     const trans = await shTrans.getTrans()
+    console.error(light);
+    console.error(trans);
+
 
     const run = new Run()
     run.setLight(light)
     run.setTrans(trans)
     const mesh = await run.getMesh()
     mesh.name = "123"
-    console.error(mesh);
 
     this.stage.scene.add(mesh)
   }
