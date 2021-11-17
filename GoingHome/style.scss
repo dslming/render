@@ -1,0 +1,613 @@
+@charset "UTF-8";
+
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-text-size-adjust: none;
+}
+
+html {
+  /*overflow-y: auto;*/
+}
+
+html,
+body {
+  overflow: hidden;
+  height: 100%;
+  min-height: 100%;
+}
+
+body,
+select,
+textarea,
+input {
+  font: 12px/100% Apple SD Gothic Neo, 'Apple SD 산돌고딕 Neo', 'Roboto', "맑은 고딕", "Malgun Gothic", "Apple Gothic", NanumGothic, "나눔고딕", Dotum, "돋움", gulim, "굴림", verdana, sans-serif;
+  color: #333;
+  border: 0;
+}
+
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+form,
+fieldset,
+input,
+p,
+blockquote,
+table,
+th,
+td,
+embed,
+object,
+textarea,
+a,
+img {
+  padding: 0;
+  margin: 0;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+table img {
+  vertical-align: middle;
+}
+
+select,
+input,
+table tr td,
+table tr th {
+  vertical-align: middle;
+}
+
+form,
+fieldset,
+abbr,
+acronym {
+  border: 0;
+}
+
+img {
+  border: 0;
+  vertical-align: top;
+}
+
+/* 이미지에 공간을 없애기 위해 vertical-align:top 사용 */
+address,
+caption,
+cite,
+code,
+dfn,
+em,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+th,
+var {
+  font-weight: normal;
+  font-style: normal;
+}
+
+ol,
+ul,
+li {
+  list-style: none;
+}
+
+table td a {
+  display: inline-block;
+}
+
+table caption {
+  display: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+input[type="image"] {
+  vertical-align: top;
+}
+
+body {
+  overflow: hidden;
+}
+
+.modal-table {
+  display: table;
+  width: 100%;
+  height: 100%;
+  table-layout: fixed;
+}
+
+.modal-cell {
+  display: table-cell;
+  width: 100%;
+  vertical-align: middle;
+  text-align: center;
+  height: 100%;
+}
+
+#accessibility,
+hr,
+caption,
+legend {
+  position: absolute;
+  width: 0;
+  height: 0;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  text-indent: -5000px;
+}
+
+.skip {
+  position: absolute;
+  width: 0;
+  height: 0;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  text-indent: -5000px;
+}
+
+/* 이미지, 플래시 속 내용 */
+
+
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  border-radius: $radius;
+}
+
+@mixin transition($transition...) {
+  -moz-transition: $transition;
+  -o-transition: $transition;
+  -webkit-transition: $transition;
+  transition: $transition;
+}
+
+// generic transform
+@mixin transform($transforms) {
+  -moz-transform: $transforms;
+  -o-transform: $transforms;
+  -ms-transform: $transforms;
+  -webkit-transform: $transforms;
+  transform: $transforms;
+}
+
+// rotate
+@mixin rotate ($deg) {
+  @include transform(rotate(#{$deg}deg));
+}
+
+// scale
+@mixin scale($scale) {
+  @include transform(scale($scale));
+}
+
+// translate
+@mixin translate ($x, $y) {
+  @include transform(translate($x, $y));
+}
+
+// skew
+@mixin skew ($x, $y) {
+  @include transform(skew(#{$x}deg, #{$y}deg));
+}
+
+//transform origin
+@mixin transform-origin ($origin) {
+  moz-transform-origin: $origin;
+  -o-transform-origin: $origin;
+  -ms-transform-origin: $origin;
+  -webkit-transform-origin: $origin;
+  transform-origin: $origin;
+}
+
+@mixin border-box() {
+  -webkit-box-sizing: border-box;
+  /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;
+  /* Firefox, other Gecko */
+  box-sizing: border-box;
+  /* Opera/IE 8+ */
+}
+
+@mixin keyframe ($animation_name) {
+  @-webkit-keyframes #{$animation-name} {
+    @content;
+  }
+
+  @-moz-keyframes #{$animation-name} {
+    @content;
+  }
+
+  @-o-keyframes #{$animation-name} {
+    @content;
+  }
+
+  @keyframes #{$animation-name} {
+    @content;
+  }
+}
+
+
+/*
+    Example usage:
+    @include animation(10s, 5s, changecolour)
+ */
+@mixin animation ($delay, $duration, $animation, $iteration, $direction) {
+  -webkit-animation-delay: $delay;
+  -webkit-animation-duration: $duration;
+  -webkit-animation-name: $animation;
+  -webkit-animation-iteration-count: $iteration;
+  -webkit-animation-fill-mode: both;
+  /* this prevents the animation from restarting! */
+  -webkit-animation-direction: $direction;
+
+  -moz-animation-delay: $delay;
+  -moz-animation-duration: $duration;
+  -moz-animation-name: $animation;
+  -moz-animation-iteration-count: $iteration;
+  -moz-animation-fill-mode: both;
+  /* this prevents the animation from restarting! */
+  -moz-animation-direction: $direction;
+
+  -o-animation-delay: $delay;
+  -o-animation-duration: $duration;
+  -o-animation-name: $animation;
+  -o-animation-iteration-count: $iteration;
+  -o-animation-fill-mode: both;
+  /* this prevents the animation from restarting! */
+  -o-animation-direction: $direction;
+
+  animation-delay: $delay;
+  animation-duration: $duration;
+  animation-name: $animation;
+  animation-iteration-count: $iteration;
+  animation-fill-mode: both;
+  /* this prevents the animation from restarting! */
+  animation-direction: $direction; // alternate
+
+}
+
+/*
+  CUSTOM
+*/
+
+body {
+  background-color: #2a2a2a;
+
+}
+
+#container {}
+
+// 배경 색상
+.container_bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+
+  // 단색 배경
+  #solid {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  // 그라디언트 배경
+  #gradient {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: 0;
+    //background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%);
+    background: linear-gradient(90deg, #4c3b3b 0%, #272626 100%)
+  }
+}
+
+
+
+// webgl canvas가 들어갈 위치
+#container_3d {
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.cursorPointer {
+  cursor: pointer;
+}
+
+#header {
+  z-index: 10;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: none;
+
+  h1 {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+
+    a {
+      display: block;
+      width: 132px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: bold;
+      line-height: 100%;
+      padding: 10px;
+      @include border-box();
+
+      svg {
+        width: 100%;
+      }
+    }
+  }
+
+  .sound {
+    position: absolute;
+    top: 18px;
+    right: 10px;
+    opacity: 0;
+    color: #fff;
+
+    a {
+      display: block;
+      font-size: .8rem;
+      line-height: 100%;
+      cursor: pointer;
+    }
+  }
+}
+
+
+@include keyframe(fadeout) {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: .1;
+  }
+}
+
+@include keyframe(fadeInOut) {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: .5;
+  }
+}
+
+@include keyframe(scaleOut) {
+  0% {
+    @include scale(0);
+    opacity: 0
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    @include scale(1);
+    opacity: 0;
+  }
+
+}
+
+
+// 클릭 드래그 지시자
+#indicators {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.indicator {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  /*@include transform-origin(-50px -50px);*/
+
+  @include border-box();
+
+  svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .group {
+    @include transform-origin(0);
+  }
+
+  .center {
+    display: block;
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 10px;
+    height: 10px;
+    background-color: #fff;
+    @include border-box();
+    opacity: 0;
+
+    @include border-radius(8px);
+    @include animation(0s, 1s, fadeInOut, infinite, alternate)
+  }
+
+  .circle {
+    display: block;
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 100px;
+    height: 100px;
+    border: 2px solid #fff;
+    text-align: center;
+    line-height: 100px;
+    pointer-events: none;
+
+    @include border-box();
+    @include border-radius(50px);
+    //background-color:rgba(0, 0, 0, .8);
+    //@include transform(scale(2,2))
+    //@include scale(5);
+    ///@include animation(0s, 1s, fadeout, infinite)
+    //@include animation(0s, 2s, scaleOut, infinite, normal)
+  }
+
+  .circle-0 {
+    @include animation(0s, 3s, scaleOut, infinite, normal);
+  }
+
+  .circle-1 {
+    @include animation(1s, 3s, scaleOut, infinite, normal);
+  }
+
+  .circle-2 {
+    @include animation(2s, 3s, scaleOut, infinite, normal);
+  }
+
+  .text {
+    position: absolute;
+    top: -27px;
+    left: -25px;
+    width: 50px;
+    display: inline-block;
+    text-align: center;
+    color: #fff;
+    font-size: .9rem;
+    font-weight: bold;
+    opacity: .65;
+  }
+
+  &.black {
+    .center {
+      background-color: #585656;
+    }
+
+    .circle {
+      border: 2px solid #585656;
+    }
+  }
+}
+
+#introduce {
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: none;
+  opacity: 0;
+
+  .card {
+    text-align: center;
+    padding: 20px 10px;
+
+    h3 {
+      color: #444;
+      font-size: 1rem;
+      line-height: 150%;
+
+    }
+
+    a {
+      margin-left: 30px;
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #333;
+      border-bottom: 3px solid #333;
+      @include transition(border 1s);
+
+      &:hover {
+        border-bottom: 3px solid #fff;
+      }
+    }
+  }
+}
+
+#book {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0 20px 50px;
+  pointer-events: none;
+  @include border-box();
+
+  div {
+    text-align: center;
+    color: #fff;
+
+    //text-shadow:2px 2px 3px rgba(0,0,0, 0.5);
+    p {
+      font-size: 1.1rem;
+      line-height: 170%;
+      font-family: 'Nanum Myeongjo', serif;
+      opacity: 0;
+
+      @media screen and (max-width: 480px) {
+        font-size: 0.95rem;
+        line-height: 170%;
+      }
+    }
+  }
+}
+
+#created {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  color: #efefef;
+  opacity: .5;
+}
